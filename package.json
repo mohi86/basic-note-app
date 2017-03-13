@@ -12,6 +12,9 @@
     "type": "git",
     "url": "git+https://github.com/mohi86/basic-note-app.git"
   },
+  "engines": {
+    "node": "7.7.1"
+  },
   "author": "Mohi Khalili",
   "license": "ISC",
   "bugs": {
