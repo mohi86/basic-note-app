@@ -8,10 +8,10 @@ const {Todo} = require('./../models/todo')
 const todos = [{
     _id: new ObjectID(),
     text: 'firt items on todos'
-},{
+}, {
     _id: new ObjectID(),
     text: 'Second items on todos'
-},{
+}, {
     text: 'third items on todos'
 }]
 
@@ -58,7 +58,9 @@ describe('POST /todos', () => {
                 Todo.find().then((todos) => {
                     expect(todos.length).toBe(3)
                     done()
-                }).catch((e) => {done(e)})
+                }).catch((e) => {
+                    done(e)
+                })
             })
     })
 })
@@ -100,5 +102,27 @@ describe('Get todos/:id', () => {
             .get('/todos/1234')
             .expect(400)
             .end(done)
+    })
+})
+
+describe('DELETE /todos/:id ', () => {
+    it('should delete a todo', (done) => {
+        var hexId = todos[1]._id.toHexString()
+
+        request(app)
+            .delete(`/todos/${hexId}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo._id).toBe(hexId)
+            })
+            .end((err) => {
+                if(err) {
+                    return done(err)
+                }
+                Todo.findById(hexId).then((todo) => {
+                    expect(todo).toNotExist()
+                    done()
+                }).catch((e) => {done(e)})
+            })
     })
 })
