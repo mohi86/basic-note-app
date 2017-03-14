@@ -17,18 +17,22 @@ const users = [{
 },{
     _id: userTwoId,
     email: 'jen@live.com',
-    password: 'abcd1234'
+    password: 'abcd1234',
+    tokens:[{
+        access: 'auth',
+        token: jwt.sign({_id: userTwoId, access: 'auth'}, 'abc123').toString()
+    }]
 }]
 
 //Seed todos data
 const todos = [{
     _id: new ObjectID(),
-    text: 'firt items on todos'
+    text: 'firt items on todos',
+    _creator: userOneId
 }, {
     _id: new ObjectID(),
-    text: 'Second items on todos'
-}, {
-    text: 'third items on todos'
+    text: 'Second items on todos',
+    _creator: userTwoId
 }]
 
 const populateTodos = (done) => {

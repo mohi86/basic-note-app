@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const mongodb = require("mongodb");
 const validator = require('validator')
 const jwt = require('jsonwebtoken')
 const _ = require("lodash");
@@ -50,6 +51,17 @@ UserSchema.methods.generateAuthToken = function () {
     })
     return user.save().then(() => {
         return token
+    })
+}
+
+UserSchema.methods.removeToken = function (token) {
+    let user = this
+    return user.update({
+        $pull: {
+            tokens:{
+                token: token
+            }
+        }
     })
 }
 
