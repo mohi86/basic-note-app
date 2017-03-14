@@ -1,25 +1,14 @@
 const expect = require('expect')
 const request = require('supertest')
 const {ObjectID} = require('mongodb')
+
 const {app} = require('./../server')
 const {Todo} = require('./../models/todo')
+const {todos, populateTodos} = require('./seed/seed')
+const {users, populateUsers} = require('./seed/seed')
 
-//Seed data
-const todos = [{
-    _id: new ObjectID(),
-    text: 'firt items on todos'
-}, {
-    _id: new ObjectID(),
-    text: 'Second items on todos'
-}, {
-    text: 'third items on todos'
-}]
-
-beforeEach((done) => {
-    Todo.remove({}).then(() => {
-        return Todo.insertMany(todos)
-    }).then(() => done())
-})
+beforeEach(populateUsers)
+beforeEach(populateTodos)
 
 describe('POST /todos', () => {
     it('should create a new todo', (done) => {
@@ -163,6 +152,65 @@ describe('PATCH /todos/:id', () => {
                 expect(res.body.todo.completed).toBe(false)
                 expect(res.body.todo.completedAt).toNotExist()
             })
+            .end(done)
+    })
+})
+
+describe('GET /users/me', () => {
+    it('should return user if authenticated', (done) => {
+        request(app)
+            .get('/users/me')
+            .set('x-auth', users[0].tokens[0].token)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body._id).toBe(users[0]._id.toHexString())
+                expect(res.body.email).toBe(users[0].email)
+            })
+            .end(done)
+    })
+
+    it('should return 401 if not authenticated', (done) => {
+        request(app)
+            .get('/users/me')
+            .set('x-auth', 'ujafghgvabvafyhgbaydhibv4ht63h4ebt63jh45bv63jhg56v')
+            .expect(401)
+            .expect((res) => {
+                expect(res.body).toEqual({error: 'User not authorized'})
+            })
+            .end(done)
+    })
+})
+
+describe('POST /users/me', () => {
+    it('should create a user', (done) => {
+        let email = 'example@test.com'
+        let password = 'abcd1234'
+
+        request(app)
+            .post('/users')
+            .send({email, password})
+            .expect(200)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toExist()
+                expect(res.body._id).toExist()
+                expect(res.body.email).toBe(email)
+            })
+            .end(done)
+    })
+
+    it('should return validation errors for invalid requests', (done) => {
+        request(app)
+            .post('/users')
+            .send({email: 'invalideEmail', password: 'pass'})
+            .expect(400)
+            .end(done)
+    })
+
+    it('should not create user email is used', (done) => {
+        request(app)
+            .post('/users')
+            .send({email: 'mjkhalili@live.com', password: 'pass'})
+            .expect(400)
             .end(done)
     })
 })
